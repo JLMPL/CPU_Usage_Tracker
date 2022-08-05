@@ -15,7 +15,7 @@ void logger_log(logLevel_t level, const char* str, ...)
 
     va_list args;
     va_start(args, str);
-    // -Wformat-nonliteral not supposed to be
+    // -Wformat-nonliteral - not supposed to be
     vsnprintf(buffer, MAX_LOG_ENTRY_LENGTH, str, args);
     va_end(args);
 

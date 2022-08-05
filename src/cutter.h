@@ -14,7 +14,7 @@
 #include <stdio.h>
 #include <string.h>
 
-// based on AMD Ryzen Threadripper 3990X 64-Core, 128-Thread
+// if that's not enough i don't know life anymore
 #define MAX_CPU_CORES 128
 
 typedef unsigned long long int ulong;
