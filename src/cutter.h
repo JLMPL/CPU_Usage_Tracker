@@ -1,15 +1,25 @@
 #ifndef MAIN_HEADER_H
 #define MAIN_HEADER_H
+
+// Hopefully justified
+#ifdef __clang__
+// doesn't apply since we're using c99+
+#pragma clang diagnostic ignored "-Wdeclaration-after-statement"
+#endif
+
 #include <pthread.h>
-#include <stdatomic.h>
+#include <stdatomic.h> //the reason for c11
 #include <stdbool.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
-#define MAX_CPU_CORES 64
+// based on AMD Ryzen Threadripper 3990X 64-Core, 128-Thread
+#define MAX_CPU_CORES 128
 
 typedef unsigned long long int ulong;
 
+// gonna need a bit more than true & false when threads come into play
 typedef enum
 {
     CT_FAILURE,
@@ -49,6 +59,13 @@ typedef struct
     int num_cores;
 }computed_info_t;
 
+typedef enum
+{
+    LOG_INFO,
+    LOG_WARNING,
+    LOG_ERROR
+}logLevel_t;
+
 //reader.c
 status_t reader_read_proc_stat(proc_stat_info_t* ps_info);
 
@@ -63,6 +80,7 @@ void printer_print_formatted(computed_info_t* c_info);
 
 //logger.c (optional)
 // it logs
+void logger_log(logLevel_t level, const char* str, ...);
 
 //catcher.c (optional)
 void sig_catcher_init(void);

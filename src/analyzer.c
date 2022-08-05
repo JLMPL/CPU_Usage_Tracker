@@ -1,5 +1,6 @@
 #include "cutter.h"
 
+// based on htop source
 static int compute_for_core(proc_stat_core_info_t* core_info)
 {
     core_info->user = core_info->user - core_info->guest;
@@ -10,8 +11,6 @@ static int compute_for_core(proc_stat_core_info_t* core_info)
     int virtalltime   = core_info->guest + core_info->guest_nice;
 
     int total = core_info->user + core_info->nice + systemalltime + idlealltime + core_info->steal + virtalltime;
-
-    return ((float)(total - idlealltime) / (float)total) * 100;
 
     float busy_time = (float)total - (float)idlealltime;
     float busy_perc = busy_time / (float)total;
