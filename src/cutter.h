@@ -8,10 +8,12 @@
 
 #define MAX_CPU_CORES 64
 
+typedef unsigned long long int ulong;
+
 typedef enum
 {
-    CT_STATUS_FAILURE,
-    CT_STATUS_SUCCESS
+    CT_FAILURE,
+    CT_SUCCESS
 }status_t;
 
 typedef struct

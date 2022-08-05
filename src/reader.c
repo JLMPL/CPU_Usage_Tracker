@@ -1,7 +1,10 @@
 #include "cutter.h"
 #include <sys/sysinfo.h>
 
+#define PROC_STAT_PATH "/proc/stat"
 #define READ_BUFFER_SIZE 256
+
+// #define LOG_READER
 
 static void read_proc_stat_line(const char* str, proc_stat_core_info_t* core)
 {
@@ -21,6 +24,7 @@ static void read_proc_stat_line(const char* str, proc_stat_core_info_t* core)
         &core->guest_nice
     );
 
+#ifdef LOG_READER
     printf("%d %d %d %d %d" "%d %d %d %d %d\n",
         core->user,
         core->nice,
@@ -33,16 +37,17 @@ static void read_proc_stat_line(const char* str, proc_stat_core_info_t* core)
         core->guest,
         core->guest_nice
     );
+#endif
 }
 
 status_t reader_read_proc_stat(proc_stat_info_t* ps_info)
 {
     memset(ps_info, 0, sizeof(proc_stat_info_t));
 
-    FILE* file = fopen("/proc/stat", "r");
+    FILE* file = fopen(PROC_STAT_PATH, "r");
 
     if (!file)
-        return CT_STATUS_FAILURE;
+        return CT_FAILURE;
 
     ps_info->num_cores = get_nprocs();
 
@@ -58,5 +63,5 @@ status_t reader_read_proc_stat(proc_stat_info_t* ps_info)
 
     fclose(file);
 
-    return CT_STATUS_SUCCESS;
+    return CT_SUCCESS;
 }
