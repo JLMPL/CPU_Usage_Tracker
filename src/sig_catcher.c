@@ -1,6 +1,6 @@
 #include "cutter.h"
 
-static void term()
+static noreturn void term()
 {
     ct_shutdown();
 }

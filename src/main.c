@@ -109,19 +109,20 @@ int main(void)
     pthread_join(printer_thread, NULL);
 
     ct_shutdown();
-    return 0;
 }
 
 /*
 
 TODO:
 read env variable CC
-test with valgrind
 do a test (make test)
 make printer average / second
 watchdog
 logger -> file
 
 MAKE IT OOP
+    put sync primitives into a struct
+    put jobs in their files
+    go from there
 
 */

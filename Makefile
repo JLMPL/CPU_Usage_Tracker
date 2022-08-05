@@ -1,14 +1,20 @@
 
-all: gcc_target clang_target
+WARNINGS_GCC = -Wall -Wextra
+WARNINGS_CLANG = -Weverything
+STANDARD = -std=gnu11 #gnu for sigaction
 
 SRC_FILES = src/main.c src/sig_catcher.c src/reader.c src/analyzer.c src/printer.c src/logger.c
 
-#gnu99 for struct sigaction
-gcc_target:
-	gcc -std=gnu99 -g -Wall -Wextra $(SRC_FILES) -o cutter
+default:
+ifeq ($(CC), gcc)
+	$(CC) $(STANDARD) -g $(WARNINGS_GCC) $(SRC_FILES) -o cutter
+else ifeq ($(CC), clang)
+	$(CC) $(STANDARD) -g $(WARNINGS_CLANG) $(SRC_FILES) -o cutter
+endif
 
-clang_target:
-	clang -std=gnu99 -g -Weverything $(SRC_FILES) -o cutter_clang
+all:
+	gcc $(STANDARD) -g $(WARNINGS_GCC) $(SRC_FILES) -o cutter
+	clang $(STANDARD) -g $(WARNINGS_CLANG) $(SRC_FILES) -o cutter_clang
 
 test:
 	@echo "Do test stuff!"

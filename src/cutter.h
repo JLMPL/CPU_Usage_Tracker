@@ -5,10 +5,16 @@
 #ifdef __clang__
 // doesn't apply since we're using c99+
 #pragma clang diagnostic ignored "-Wdeclaration-after-statement"
+
+// not supposed to be a literal
+#pragma clang diagnostic ignored "-Wformat-nonliteral"
+
+// comes from sigaction.h nothing I can do
+#pragma clang diagnostic ignored "-Wdisabled-macro-expansion"
 #endif
 
 #include <pthread.h>
-#include <stdatomic.h> //the reason for c11
+#include <stdatomic.h> //the reason for c11 for now
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -22,9 +28,6 @@
 // if that's not enough i don't know life anymore
 #define MAX_CPU_CORES 128
 
-// typedef unsigned long long int ulong;
-
-// gonna need a bit more than true & false when threads come into play
 typedef enum
 {
     CT_FAILURE,
@@ -72,7 +75,7 @@ typedef enum
 }logLevel_t;
 
 //main.c
-void ct_shutdown(void);
+noreturn void ct_shutdown(void);
 
 //reader.c
 status_t reader_read_proc_stat(proc_stat_info_t* ps_info);
