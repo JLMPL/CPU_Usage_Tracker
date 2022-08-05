@@ -13,11 +13,16 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <signal.h>
+#include <unistd.h>
+#include <semaphore.h>
+#include <time.h>
+#include <stdnoreturn.h>
 
 // if that's not enough i don't know life anymore
 #define MAX_CPU_CORES 128
 
-typedef unsigned long long int ulong;
+// typedef unsigned long long int ulong;
 
 // gonna need a bit more than true & false when threads come into play
 typedef enum
@@ -65,6 +70,9 @@ typedef enum
     LOG_WARNING,
     LOG_ERROR
 }logLevel_t;
+
+//main.c
+void ct_shutdown(void);
 
 //reader.c
 status_t reader_read_proc_stat(proc_stat_info_t* ps_info);

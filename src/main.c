@@ -1,7 +1,4 @@
 #include "cutter.h"
-#include <unistd.h>
-#include <time.h>
-#include <semaphore.h>
 
 #define NUM_EXCHANGE_BUFFER_ENTRIES 32 //arbitrary
 
@@ -41,7 +38,6 @@ static void* analyzer_job()
 {
     while (true)
     {
-
         sem_wait(&ps_info_taken_semaphore);
         sem_wait(&c_info_empty_semaphore);
         pthread_mutex_lock(&ps_info_mutex);
@@ -54,8 +50,6 @@ static void* analyzer_job()
         pthread_mutex_unlock(&c_info_mutex);
         sem_post(&ps_info_empty_semaphore);
         sem_post(&c_info_taken_semaphore);
-
-
     }
 
     return NULL;
@@ -74,6 +68,24 @@ static void* printer_job()
     }
 
     return NULL;
+}
+
+void ct_shutdown(void)
+{
+    pthread_cancel(reader_thread);
+    pthread_cancel(analyzer_thread);
+    pthread_cancel(printer_thread);
+
+    pthread_mutex_destroy(&ps_info_mutex);
+    sem_destroy(&ps_info_empty_semaphore);
+    sem_destroy(&ps_info_taken_semaphore);
+
+    pthread_mutex_destroy(&c_info_mutex);
+    sem_destroy(&c_info_empty_semaphore);
+    sem_destroy(&c_info_taken_semaphore);
+
+    logger_log(LOG_INFO, "Beautiful death\n");
+    exit(0);
 }
 
 int main(void)
@@ -96,14 +108,20 @@ int main(void)
     pthread_join(analyzer_thread, NULL);
     pthread_join(printer_thread, NULL);
 
-    pthread_mutex_destroy(&ps_info_mutex);
-    sem_destroy(&ps_info_empty_semaphore);
-    sem_destroy(&ps_info_taken_semaphore);
-
-    pthread_mutex_destroy(&c_info_mutex);
-    sem_destroy(&c_info_empty_semaphore);
-    sem_destroy(&c_info_taken_semaphore);
-
-    logger_log(LOG_INFO, "program closed correctly\n");
+    ct_shutdown();
     return 0;
 }
+
+/*
+
+TODO:
+read env variable CC
+test with valgrind
+do a test (make test)
+make printer average / second
+watchdog
+logger -> file
+
+MAKE IT OOP
+
+*/
