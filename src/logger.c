@@ -9,7 +9,7 @@
 #define PURPLE  "\x1B[0;35m"
 #define RESET   "\x1B[1;0m"
 
-void logger_log(logLevel_t level, const char* str, ...)
+void logger_log(log_level_t level, const char* str, ...)
 {
     char buffer[MAX_LOG_ENTRY_LENGTH];
 

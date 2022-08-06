@@ -32,3 +32,38 @@ status_t analyzer_compute_usage(proc_stat_info_t* ps_info, computed_info_t* c_in
 
     return CT_SUCCESS;
 }
+
+static void* analyzer_job(void* data)
+{
+    UNPACK_JOB_ARGS;
+
+    while (true)
+    {
+        sem_wait(&syncs->ps_info_taken_semaphore);
+        sem_wait(&syncs->c_info_empty_semaphore);
+        pthread_mutex_lock(&syncs->ps_info_mutex);
+        pthread_mutex_lock(&syncs->c_info_mutex);
+            analyzer_compute_usage(&buffers->ps_infos[buffers->num_ps_infos - 1], &buffers->c_infos[buffers->num_c_infos]);
+            buffers->num_ps_infos--;
+            buffers->num_c_infos++;
+            // logger_log(LOG_INFO, "analyzer_job running!\n");
+        pthread_mutex_unlock(&syncs->ps_info_mutex);
+        pthread_mutex_unlock(&syncs->c_info_mutex);
+        sem_post(&syncs->ps_info_empty_semaphore);
+        sem_post(&syncs->c_info_taken_semaphore);
+    }
+
+    return NULL;
+}
+
+void analyzer_job_init(job_t* analyzer, sync_primitives_t* sync_prims, exchange_buffers_t* buffers)
+{
+    memset(analyzer, 0, sizeof(job_t));
+
+    analyzer->args = (job_arguments_t){
+        .prims = sync_prims,
+        .buffers = buffers
+    };
+
+    pthread_create(&analyzer->thread, NULL, &analyzer_job, &analyzer->args);
+}
