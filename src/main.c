@@ -6,13 +6,16 @@ static exchange_buffers_t buffers;
 static job_t reader;
 static job_t analyzer;
 static job_t printer;
+static job_t logger;
 
 void ct_shutdown(void)
 {
     job_kill(&reader);
     job_kill(&analyzer);
     job_kill(&printer);
+    job_kill(&logger);
 
+    logger_destroy();
     sync_primitives_destroy(&sync_prims);
 
     logger_log(LOG_INFO, "Beautiful death\n");
@@ -25,6 +28,7 @@ int main(void)
     sync_primitives_init(&sync_prims);
     exchange_buffers_init(&buffers);
 
+    logger_job_init(&logger, &sync_prims);
     reader_job_init(&reader, &sync_prims, &buffers);
     analyzer_job_init(&analyzer, &sync_prims, &buffers);
     printer_job_init(&printer, &sync_prims, &buffers);
@@ -32,6 +36,7 @@ int main(void)
     job_wait(&reader);
     job_wait(&analyzer);
     job_wait(&printer);
+    job_wait(&logger);
 
     ct_shutdown();
 }

@@ -143,7 +143,9 @@ void printer_print_formatted(computed_info_t* c_info);
 
 //logger.c (optional)
 // it logs
+void logger_job_init(job_t* logger, sync_primitives_t* sync_prims);
 void logger_log(log_level_t level, const char* str, ...);
+void logger_destroy(void);
 
 //catcher.c (optional)
 void sig_catcher_init(void);
