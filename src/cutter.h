@@ -11,6 +11,10 @@
 
 // comes from sigaction.h nothing I can do
 #pragma clang diagnostic ignored "-Wdisabled-macro-expansion"
+
+// just trying to print a %
+// #pragma clang diagnostic ignored "-Wformat-invalid-specifier"
+
 #endif
 
 #include <pthread.h>
@@ -24,6 +28,7 @@
 #include <semaphore.h>
 #include <time.h>
 #include <stdnoreturn.h>
+#include <sys/sysinfo.h>
 
 // if that's not enough i don't know life anymore
 #define MAX_CPU_CORES 128
@@ -56,7 +61,6 @@ typedef struct
 {
     proc_stat_core_info_t cpu;
     proc_stat_core_info_t cores[MAX_CPU_CORES];
-    int num_cores;
 }proc_stat_info_t;
 
 typedef struct
@@ -68,7 +72,6 @@ typedef struct
 {
     computed_core_info_t cpu;
     computed_core_info_t cores[MAX_CPU_CORES];
-    int num_cores;
 }computed_info_t;
 
 typedef enum

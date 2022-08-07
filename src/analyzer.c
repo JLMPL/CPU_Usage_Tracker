@@ -23,9 +23,8 @@ status_t analyzer_compute_usage(proc_stat_info_t* ps_info, computed_info_t* c_in
     memset(c_info, 0, sizeof(computed_info_t));
 
     c_info->cpu.value = compute_for_core(&ps_info->cpu);
-    c_info->num_cores = ps_info->num_cores;
 
-    for (int i = 0; i < ps_info->num_cores; i++)
+    for (int i = 0; i < get_nprocs(); i++)
     {
         c_info->cores[i].value = compute_for_core(&ps_info->cores[i]);
     }

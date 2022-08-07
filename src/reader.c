@@ -1,7 +1,9 @@
 #include "cutter.h"
-#include <sys/sysinfo.h>
 
+#ifndef PROC_STAT_PATH
 #define PROC_STAT_PATH "/proc/stat"
+#endif
+
 #define READ_BUFFER_SIZE 256
 
 // #define LOG_READER
@@ -49,13 +51,11 @@ status_t reader_read_proc_stat(proc_stat_info_t* ps_info)
     if (!file)
         return CT_FAILURE;
 
-    ps_info->num_cores = get_nprocs();
-
     char buffer[READ_BUFFER_SIZE];
     fgets(buffer, READ_BUFFER_SIZE, file);
     read_proc_stat_line(buffer, &ps_info->cpu);
 
-    for (int i = 0; i < ps_info->num_cores; i++)
+    for (int i = 0; i < get_nprocs(); i++)
     {
         fgets(buffer, READ_BUFFER_SIZE, file);
         read_proc_stat_line(buffer, &ps_info->cores[i]);

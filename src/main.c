@@ -45,11 +45,7 @@ int main(void)
 
 TODO:
 do a test (make test)
-make printer average / second
 watchdog
 logger -> file
-
-MAKE IT OOP
-    unglobal buffers
 
 */

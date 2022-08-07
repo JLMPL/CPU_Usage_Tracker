@@ -2,6 +2,7 @@
 #include <stdarg.h>
 
 #define MAX_LOG_ENTRY_LENGTH 512
+#define MAX_LOG_ENTRIES 128
 
 //unix only
 #define RED     "\x1B[1;31m"
@@ -17,11 +18,52 @@ typedef struct
     char str[MAX_LOG_ENTRY_LENGTH];
 }log_entry_t;
 
+typedef struct
+{
+    log_entry_t entries[MAX_LOG_ENTRIES];
+    int num_entries;
+    int read_index;
+}log_queue_t;
+
 static sem_t log_entries_available_semaphore;
 static pthread_mutex_t log_entries_mutex;
 
-static log_entry_t log_entry_queue;
-static int log_entry_queue_size = 0;
+static atomic_bool queue_flag = false;
+static log_queue_t queues[2];
+
+static void enqueue_on_write_queue(log_level_t level, const char* str)
+{
+    log_entry_t entry;
+    entry.level = level;
+    memcpy(entry.str, str, MAX_LOG_ENTRY_LENGTH);
+
+    int write_index = (int)atomic_load(&queue_flag);
+
+    queues[write_index].entries[queues[write_index].num_entries++] = entry;
+
+    printf("enqueued %d %s\n", level, str);
+}
+
+static bool pop_from_read_queue(log_entry_t* entry)
+{
+    bool raw_bool = !(bool)atomic_load(&queue_flag);
+    int read_index = (int)raw_bool;
+
+    if (queues[read_index].num_entries <= 0)
+    {
+        return false;
+    }
+
+    if (queues[read_index].read_index == queues[read_index].num_entries)
+    {
+        return false;
+    }
+
+    *entry = queues[read_index].entries[queues[read_index].read_index];
+    queues[read_index].read_index++;
+
+    return true;
+}
 
 // called from other threads
 void logger_log(log_level_t level, const char* str, ...)
@@ -47,18 +89,7 @@ void logger_log(log_level_t level, const char* str, ...)
             break;
     }
 
-    return;
-    log_entry_t le;
-    le.level = level;
-    memcpy(le.str, buffer, MAX_LOG_ENTRY_LENGTH);
-
-
-    //maybe flip queue
-    pthread_mutex_lock(&log_entries_mutex);
-        log_entry_queue = le;
-        log_entry_queue_size++;
-    pthread_mutex_unlock(&log_entries_mutex);
-    sem_post(&log_entries_available_semaphore);
+    enqueue_on_write_queue(level, buffer);
 }
 
 // apparently min & max are not to be taken for granted
@@ -74,6 +105,8 @@ static void* logger_job()
 {
     FILE* file = fopen(LOG_FILE, "a");
 
+    memset(queues, 0, sizeof(log_queue_t) * 2);
+
     if (!file)
     {
         printf("Logging to file unavailable!\n");
@@ -81,14 +114,20 @@ static void* logger_job()
 
     while (true)
     {
-        sem_wait(&log_entries_available_semaphore);
-        // pthread_mutex_lock(&log_entries_mutex);
-        logger_log(log_entry_queue.level, log_entry_queue.str);
-        log_entry_queue_size--;
+        log_entry_t entry;
 
-        // int length = ct_min((int)strlen(log_entry_queue.str), MAX_LOG_ENTRY_LENGTH);
-        // fwrite(log_entry_queue.str, 1, (ulong)length, file);
-        // pthread_mutex_unlock(&log_entries_mutex);
+        if (pop_from_read_queue(&entry))
+        {
+            printf("saving to file %d %s\n", entry.level, entry.str);
+
+            int length = ct_min((int)strlen(entry.str), MAX_LOG_ENTRY_LENGTH);
+            fwrite(entry.str, 1, (ulong)length, file);
+            fflush(file);
+        }
+        else
+        {
+            atomic_store(&queue_flag, !atomic_load(&queue_flag));
+        }
     }
 
     //fclose is handled by exit(int)

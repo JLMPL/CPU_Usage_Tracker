@@ -7,11 +7,11 @@ static int num_c_infos_held = 0;
 void printer_print_formatted(computed_info_t* c_info)
 {
     logger_log(LOG_INFO, "pid %d\n", getpid());
-    printf("total\t%.2f%\n", c_info->cpu.value);
+    printf("total\t%.2f%%\n", c_info->cpu.value);
 
-    for (int i = 0; i < c_info->num_cores; i++)
+    for (int i = 0; i < get_nprocs(); i++)
     {
-        printf("cpu%d\t%.2f%\n", i, c_info->cores[i].value);
+        printf("cpu%d\t%.2f%%\n", i, c_info->cores[i].value);
     }
 }
 
@@ -19,13 +19,14 @@ static void compute_average_and_print(void)
 {
     computed_info_t sum;
     memset(&sum, 0, sizeof(computed_info_t));
-    sum.num_cores = get_nprocs();
+
+    int num_cores = get_nprocs();
 
     for (int i = 0; i < num_c_infos_held; i++)
     {
         sum.cpu.value += c_info_aggregate[i].cpu.value;
 
-        for (int j = 0; j < sum.num_cores; j++)
+        for (int j = 0; j < num_cores; j++)
         {
             sum.cores[j].value += c_info_aggregate[i].cores[j].value;
         }
@@ -33,7 +34,7 @@ static void compute_average_and_print(void)
 
     sum.cpu.value /= (float)num_c_infos_held;
 
-    for (int i = 0; i < sum.num_cores; i++)
+    for (int i = 0; i < num_cores; i++)
     {
         sum.cores[i].value /= (float)num_c_infos_held;
     }
@@ -63,6 +64,8 @@ static void* printer_job(void* data)
             else if (prev_time != curr_time)
             {
                 compute_average_and_print();
+
+                memset(c_info_aggregate, 0, sizeof(computed_info_t) * MAX_C_INFOS_HELD);
                 num_c_infos_held = 0;
             }
             buffers->num_c_infos--;
