@@ -1,26 +1,72 @@
 #include "cutter.h"
 
+#define MAX_C_INFOS_HELD 512 //arbitrary
+static computed_info_t c_info_aggregate[MAX_C_INFOS_HELD];
+static int num_c_infos_held = 0;
+
 void printer_print_formatted(computed_info_t* c_info)
 {
     logger_log(LOG_INFO, "pid %d\n", getpid());
-    printf("total\t%d\n", c_info->cpu.value);
+    printf("total\t%.2f%\n", c_info->cpu.value);
 
     for (int i = 0; i < c_info->num_cores; i++)
     {
-        printf("cpu%d\t%d\n", i, c_info->cores[i].value);
+        printf("cpu%d\t%.2f%\n", i, c_info->cores[i].value);
     }
+}
+
+static void compute_average_and_print(void)
+{
+    computed_info_t sum;
+    memset(&sum, 0, sizeof(computed_info_t));
+    sum.num_cores = get_nprocs();
+
+    for (int i = 0; i < num_c_infos_held; i++)
+    {
+        sum.cpu.value += c_info_aggregate[i].cpu.value;
+
+        for (int j = 0; j < sum.num_cores; j++)
+        {
+            sum.cores[j].value += c_info_aggregate[i].cores[j].value;
+        }
+    }
+
+    sum.cpu.value /= (float)num_c_infos_held;
+
+    for (int i = 0; i < sum.num_cores; i++)
+    {
+        sum.cores[i].value /= (float)num_c_infos_held;
+    }
+
+    printer_print_formatted(&sum);
 }
 
 static void* printer_job(void* data)
 {
     UNPACK_JOB_ARGS;
 
+    long prev_time = 0;
+    long curr_time = time(NULL);
+
     while (true)
     {
+        prev_time = curr_time;
+        curr_time = time(NULL);
+
         sem_wait(&syncs->c_info_taken_semaphore);
         pthread_mutex_lock(&syncs->c_info_mutex);
-            printer_print_formatted(&buffers->c_infos[buffers->num_c_infos]);
+        {
+            if (prev_time == curr_time && num_c_infos_held < MAX_C_INFOS_HELD)
+            {
+                c_info_aggregate[num_c_infos_held++] = buffers->c_infos[buffers->num_c_infos];
+            }
+            else if (prev_time != curr_time)
+            {
+                compute_average_and_print();
+                num_c_infos_held = 0;
+            }
             buffers->num_c_infos--;
+        }
         pthread_mutex_unlock(&syncs->c_info_mutex);
         sem_post(&syncs->c_info_empty_semaphore);
     }

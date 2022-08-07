@@ -1,7 +1,7 @@
 #include "cutter.h"
 
 // based on htop source
-static int compute_for_core(proc_stat_core_info_t* core_info)
+static float compute_for_core(proc_stat_core_info_t* core_info)
 {
     core_info->user = core_info->user - core_info->guest;
     core_info->nice     = core_info->nice - core_info->guest_nice;
@@ -15,7 +15,7 @@ static int compute_for_core(proc_stat_core_info_t* core_info)
     float busy_time = (float)total - (float)idlealltime;
     float busy_perc = busy_time / (float)total;
 
-    return (int)(busy_perc * 100.f);
+    return busy_perc * 100.f;
 }
 
 status_t analyzer_compute_usage(proc_stat_info_t* ps_info, computed_info_t* c_info)

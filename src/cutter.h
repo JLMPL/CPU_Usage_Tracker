@@ -61,7 +61,7 @@ typedef struct
 
 typedef struct
 {
-    int value;
+    float value;
 }computed_core_info_t;
 
 typedef struct

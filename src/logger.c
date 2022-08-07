@@ -47,10 +47,13 @@ void logger_log(log_level_t level, const char* str, ...)
             break;
     }
 
+    return;
     log_entry_t le;
     le.level = level;
     memcpy(le.str, buffer, MAX_LOG_ENTRY_LENGTH);
 
+
+    //maybe flip queue
     pthread_mutex_lock(&log_entries_mutex);
         log_entry_queue = le;
         log_entry_queue_size++;
@@ -67,7 +70,7 @@ static int ct_min(int a, int b)
     return b;
 }
 
-static void* logger_job(void* data)
+static void* logger_job()
 {
     FILE* file = fopen(LOG_FILE, "a");
 
