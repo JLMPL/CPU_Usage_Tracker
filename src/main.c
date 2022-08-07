@@ -44,8 +44,10 @@ int main(void)
 /*
 
 TODO:
+
+maybe some memalloc
+
 do a test (make test)
 watchdog
-logger -> file
 
 */

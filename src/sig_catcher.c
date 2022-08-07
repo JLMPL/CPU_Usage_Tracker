@@ -2,7 +2,11 @@
 
 static noreturn void term()
 {
+#ifndef BUILD_TEST
     ct_shutdown();
+#else
+    exit(0);
+#endif
 }
 
 void sig_catcher_init(void)

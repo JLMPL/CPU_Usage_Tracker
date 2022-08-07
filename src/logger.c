@@ -2,7 +2,7 @@
 #include <stdarg.h>
 
 #define MAX_LOG_ENTRY_LENGTH 512
-#define MAX_LOG_ENTRIES 128
+#define MAX_LOG_ENTRIES 512
 
 //unix only
 #define RED     "\x1B[1;31m"
@@ -39,9 +39,10 @@ static void enqueue_on_write_queue(log_level_t level, const char* str)
 
     int write_index = (int)atomic_load(&queue_flag);
 
-    queues[write_index].entries[queues[write_index].num_entries++] = entry;
+    if (queues[write_index].num_entries >= MAX_LOG_ENTRIES)
+        return;
 
-    printf("enqueued %d %s\n", level, str);
+    queues[write_index].entries[queues[write_index].num_entries++] = entry;
 }
 
 static bool pop_from_read_queue(log_entry_t* entry)
@@ -118,8 +119,6 @@ static void* logger_job()
 
         if (pop_from_read_queue(&entry))
         {
-            printf("saving to file %d %s\n", entry.level, entry.str);
-
             int length = ct_min((int)strlen(entry.str), MAX_LOG_ENTRY_LENGTH);
             fwrite(entry.str, 1, (ulong)length, file);
             fflush(file);

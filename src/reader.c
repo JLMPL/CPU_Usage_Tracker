@@ -1,12 +1,10 @@
 #include "cutter.h"
 
-#ifndef PROC_STAT_PATH
-#define PROC_STAT_PATH "/proc/stat"
-#endif
-
 #define READ_BUFFER_SIZE 256
 
+#ifdef BUILD_TEST
 // #define LOG_READER
+#endif
 
 static void read_proc_stat_line(const char* str, proc_stat_core_info_t* core)
 {
@@ -42,11 +40,11 @@ static void read_proc_stat_line(const char* str, proc_stat_core_info_t* core)
 #endif
 }
 
-status_t reader_read_proc_stat(proc_stat_info_t* ps_info)
+status_t reader_read_proc_stat(proc_stat_info_t* ps_info, const char* path)
 {
     memset(ps_info, 0, sizeof(proc_stat_info_t));
 
-    FILE* file = fopen(PROC_STAT_PATH, "r");
+    FILE* file = fopen(path, "r");
 
     if (!file)
         return CT_FAILURE;
@@ -74,7 +72,7 @@ static void* reader_job(void* data)
     {
         sem_wait(&syncs->ps_info_empty_semaphore);
         pthread_mutex_lock(&syncs->ps_info_mutex);
-            reader_read_proc_stat(&buffers->ps_infos[buffers->num_ps_infos]);
+            reader_read_proc_stat(&buffers->ps_infos[buffers->num_ps_infos], "/proc/stat");
             buffers->num_ps_infos++;
             // logger_log(LOG_INFO, "reader_job reading!\n");
         pthread_mutex_unlock(&syncs->ps_info_mutex);

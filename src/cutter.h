@@ -12,8 +12,8 @@
 // comes from sigaction.h nothing I can do
 #pragma clang diagnostic ignored "-Wdisabled-macro-expansion"
 
-// just trying to print a %
-// #pragma clang diagnostic ignored "-Wformat-invalid-specifier"
+// printf always promotes floats to doubles even with %f
+#pragma clang diagnostic ignored "-Wdouble-promotion"
 
 #endif
 
@@ -113,6 +113,14 @@ typedef struct
     pthread_t thread;
 }job_t;
 
+typedef enum
+{
+    WT_READER,
+    WT_ANALYZER,
+    WT_PRINTER,
+    WT_LOGGER
+}watchdog_target_t;
+
 #define UNPACK_JOB_ARGS job_arguments_t* args = (job_arguments_t*)data;\
     sync_primitives_t* syncs = (sync_primitives_t*)args->prims;\
     exchange_buffers_t* buffers = (exchange_buffers_t*)args->buffers
@@ -131,7 +139,7 @@ void exchange_buffers_init(exchange_buffers_t* buffs);
 
 //reader.c
 void reader_job_init(job_t* reader, sync_primitives_t* sync_prims, exchange_buffers_t* buffers);
-status_t reader_read_proc_stat(proc_stat_info_t* ps_info);
+status_t reader_read_proc_stat(proc_stat_info_t* ps_info, const char* path);
 
 //analyzer.c
 void analyzer_job_init(job_t* analyzer, sync_primitives_t* sync_prims, exchange_buffers_t* buffers);
@@ -142,7 +150,8 @@ void printer_job_init(job_t* printer, sync_primitives_t* sync_prims, exchange_bu
 void printer_print_formatted(computed_info_t* c_info);
 
 //watchdog.c (optional)
-// if any thread inactive for 2sec suicide
+void watchdog_job_init(job_t* watchdog);
+void watchdog_report(watchdog_target_t who);
 
 //logger.c (optional)
 // it logs

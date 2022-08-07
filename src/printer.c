@@ -17,6 +17,9 @@ void printer_print_formatted(computed_info_t* c_info)
 
 static void compute_average_and_print(void)
 {
+    if (num_c_infos_held == 0)
+        return;
+
     computed_info_t sum;
     memset(&sum, 0, sizeof(computed_info_t));
 
@@ -47,7 +50,7 @@ static void* printer_job(void* data)
     UNPACK_JOB_ARGS;
 
     long prev_time = 0;
-    long curr_time = time(NULL);
+    long curr_time = 0;
 
     while (true)
     {
