@@ -32,10 +32,9 @@
 
 // if that's not enough i don't know life anymore
 #define MAX_CPU_CORES 128
-#define NUM_EXCHANGE_BUFFER_ENTRIES 32 //arbitrary
+#define NUM_EXCHANGE_BUFFER_ENTRIES 1 //arbitrary
 
-// "Staraj się napisać kod w duchu paradygmatu obiektoweg"
-//
+typedef long long llong;
 
 typedef enum
 {

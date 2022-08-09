@@ -1,6 +1,6 @@
 #include "cutter.h"
 
-#define MAX_C_INFOS_HELD 512 //arbitrary
+#define MAX_C_INFOS_HELD 256 //arbitrary
 static computed_info_t c_info_aggregate[MAX_C_INFOS_HELD];
 static int num_c_infos_held = 0;
 

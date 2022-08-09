@@ -72,8 +72,12 @@ static void* reader_job(void* data)
     {
         sem_wait(&syncs->ps_info_empty_semaphore);
         pthread_mutex_lock(&syncs->ps_info_mutex);
+
+        if (buffers->num_ps_infos < NUM_EXCHANGE_BUFFER_ENTRIES)
+        {
             reader_read_proc_stat(&buffers->ps_infos[buffers->num_ps_infos], "/proc/stat");
             buffers->num_ps_infos++;
+        }
             // logger_log(LOG_INFO, "reader_job reading!\n");
         pthread_mutex_unlock(&syncs->ps_info_mutex);
         sem_post(&syncs->ps_info_taken_semaphore);
